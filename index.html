@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Turtle</title>
+    <script type="text/javascript" src="turtle.js"></script>
+    <style>
+      canvas {
+        border: 1pt solid black;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0; top: 0;
+      }
+      #a {
+        z-index: 0;
+      }
+      #c {
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="a"></canvas>
+    <canvas id="c"></canvas>
+
+    <script>
+			var canvas = document.getElementById('c');
+      var arrowCanvas = document.getElementById('a');
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+      arrowCanvas.width = window.innerWidth;
+			arrowCanvas.height = window.innerHeight;
+			var turtle = new Turtle(canvas, arrowCanvas);
+
+			function drawSpiral(turtle, lineLen) {
+				if (lineLen > 0) {
+					turtle.forward(lineLen);
+					turtle.left(90);
+					drawSpiral(turtle, lineLen-5);
+				}
+			}
+			drawSpiral(turtle, 100);
+      turtle.draw();
+
+		</script>
+  </body>
+</html>
