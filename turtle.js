@@ -28,7 +28,7 @@ class Turtle {
 
   requestAnimationFrame(callback, element) {
     var currTime = new Date().getTime();
-    var timeToCall = Math.max(0, 1 - (currTime - this.lastTime));
+    var timeToCall = Math.max(0, 0.1 - (currTime - this.lastTime));
     this.timerId = window.setTimeout(function () {
       callback(currTime + timeToCall);
     },

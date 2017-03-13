@@ -33,6 +33,9 @@
 			arrowCanvas.height = window.innerHeight;
 			var turtle = new Turtle(canvas, arrowCanvas);
 
+      /**
+       * Draw a spiral
+       */
 			function drawSpiral(turtle, lineLen) {
 				if (lineLen > 0) {
 					turtle.forward(lineLen);
@@ -42,6 +45,23 @@
 			}
 			drawSpiral(turtle, 100);
       turtle.draw();
+
+      /**
+       * Draw a fractal tree
+       */
+      /*function tree(branchLen, turtle) {
+        if (branchLen > 5) {
+          turtle.forward(branchLen);
+          turtle.right(20);
+          tree(branchLen-15, turtle);
+          turtle.left(40);
+          tree(branchLen-15, turtle);
+          turtle.right(20);
+          turtle.backward(branchLen);
+        }
+      }
+      tree(75, turtle);
+      turtle.draw();*/
 
 		</script>
   </body>
