@@ -24,21 +24,28 @@ class Turtle {
 
     this.timerId;
     this.lastTime = 0;
+
+    // Animation variables
+    this.timerId;
+    this.startTime = null;
+    this.time;
+
+    this.isFilling = false;
   }
 
   requestAnimationFrame(callback, element) {
     var currTime = new Date().getTime();
-    var timeToCall = Math.max(0, 0.1 - (currTime - this.lastTime));
-    this.timerId = window.setTimeout(function () {
+    var timeToCall = Math.max(0, 1 - (currTime - this.lastTime));
+    var timerId = window.setTimeout(function () {
       callback(currTime + timeToCall);
     },
     timeToCall);
     this.lastTime = currTime + timeToCall;
-    return this.timerId;
+    return timerId;
   };
 
-  cancelAnimationFrame() {
-    clearTimeout(this.timerId);
+  cancelAnimationFrame(timerId) {
+    clearTimeout(timerId);
   };
 
   /**
@@ -51,10 +58,15 @@ class Turtle {
         var pt1 = this.vertices[i];
         var dx = pt1.x - pt0.x;
         var dy = pt1.y - pt0.y;
-        for(var j = 0; j < 100; j++){
-            var x = pt0.x + dx * j / 100;
-            var y = pt0.y + dy * j / 100;
-            waypoints.push({x: x, y: y, arrowAngle: this.vertices[i].arrowAngle});
+        for(var j = 0; j < 20; j++){
+            var x = pt0.x + dx * j / 20;
+            var y = pt0.y + dy * j / 20;
+            waypoints.push({
+              x: x,
+              y: y,
+              arrowAngle: this.vertices[i].arrowAngle,
+              action: this.vertices[i].action
+            });
         }
     }
     return(waypoints);
@@ -65,39 +77,83 @@ class Turtle {
    * drawing
    */
   animate() {
-    if (this.t < this.points.length - 1) {
-      this.requestAnimationFrame(this.animate.bind(this));
+    this.time = new Date().getTime(); //millisecond-timstamp
+    if (this.startTime === null) {
+      this.startTime = this.time;
+    }
+    var progress = this.time - this.startTime;
+    var timerId;
+    if (progress < 500) {
+      timerId = this.requestAnimationFrame(this.animate.bind(this));
+    }
+    else {
+      cancelAnimationFrame(timerId);
+      if (this.points[this.t]) {
+        timerId = this.requestAnimationFrame(this.animate.bind(this));
+      }
     }
 
-    // draw a line segment from the last waypoint
-    // to the current waypoint
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.points[this.t-1].x, this.points[this.t-1].y);
-    this.ctx.lineTo(this.points[this.t].x, this.points[this.t].y);
-    this.ctx.stroke();
-    this.ctx.save();
-    // increment "t" to get the next waypoint
+    if (this.points[this.t-1] && this.points[this.t]) {
+      switch (this.points[this.t-1].action) {
+        case 'goto':
+          this.ctx.beginPath();
+          this.ctx.moveTo(this.points[this.t-1].x, this.points[this.t-1].y);
+          this.ctx.lineTo(this.points[this.t].x, this.points[this.t].y);
+        break;
 
-    // Draw the arrow
-    this.arrowCtx.clearRect(0, 0, this.width, this.height);
-    this.arrowCtx.save();
-    var size = 6;
+        case 'beginFill':
+          this.isFilling = true;
+          this.ctx.beginPath();
+        break;
 
-    this.arrowCtx.beginPath();
-    this.arrowCtx.translate(this.points[this.t-1].x, this.points[this.t-1].y);
-    this.arrowCtx.rotate(this.points[this.t-1].arrowAngle);
-    this.arrowCtx.fillStyle = '#000';
-    this.arrowCtx.lineWidth = 0;
-    this.arrowCtx.moveTo(0, -size);
-    this.arrowCtx.lineTo(-size, -size);
-    this.arrowCtx.lineTo(0, 0);
-    this.arrowCtx.lineTo(size, -size);
-    this.arrowCtx.lineTo(0, -size);
-    this.arrowCtx.closePath();
-    this.arrowCtx.fill();
-    this.arrowCtx.restore();
+        case 'endFill':
+          //console.log('endFill');
+          this.isFilling = false;
+          this.ctx.closePath();
+          this.ctx.fillStyle = "#000";
+          this.ctx.fill();
+          this.ctx.stroke();
+        break;
 
-    this.t++;
+        case 'forward':
+          // draw a line segment from the last waypoint
+          // to the current waypoint
+          if (!this.isFilling) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.points[this.t-1].x, this.points[this.t-1].y);
+          }
+          this.ctx.lineTo(this.points[this.t].x, this.points[this.t].y);
+          this.ctx.stroke();
+          if (!this.isFilling) {
+            this.ctx.save();
+          }
+        break;
+
+        default:
+
+      }
+
+      // Draw the arrow
+      this.arrowCtx.clearRect(0, 0, this.width, this.height);
+      this.arrowCtx.save();
+      var size = 6;
+      this.arrowCtx.beginPath();
+      this.arrowCtx.translate(this.points[this.t-1].x, this.points[this.t-1].y);
+      this.arrowCtx.rotate(this.points[this.t-1].arrowAngle);
+      this.arrowCtx.fillStyle = '#000';
+      this.arrowCtx.lineWidth = 0;
+      this.arrowCtx.moveTo(0, -size);
+      this.arrowCtx.lineTo(-size, -size);
+      this.arrowCtx.lineTo(0, 0);
+      this.arrowCtx.lineTo(size, -size);
+      this.arrowCtx.lineTo(0, -size);
+      this.arrowCtx.closePath();
+      this.arrowCtx.fill();
+      this.arrowCtx.restore();
+
+      // increment "t" to get the next waypoint
+      this.t++;
+    }
   }
 
   /**
@@ -113,6 +169,64 @@ class Turtle {
   }
 
   /**
+   * Set the heading
+   * @param {Number} deg
+   */
+  setHeading(deg) {
+    var delta = deg * (Math.PI/180);
+    this.arrowAngle = delta;
+		this.heading = delta;
+  }
+
+  /**
+   * Move turtle to an absolute position. If the pen is down, draw line.
+   * Do not change the turtle’s orientation.
+   */
+  goto(x, y) {
+    this.pos.x = x;
+    this.pos.y = y;
+
+    this.vertices.push({
+      x: this.pos.x,
+      y: this.pos.y,
+      arrowAngle: this.arrowAngle,
+      action: 'goto'
+    });
+  }
+
+  beginFill() {
+    this.vertices.push({
+      x: this.pos.x,
+      y: this.pos.y,
+      arrowAngle: this.arrowAngle,
+      action: 'beginFill'
+    });
+  }
+
+  endFill() {
+    this.vertices.push({
+      x: this.pos.x,
+      y: this.pos.y,
+      arrowAngle: this.arrowAngle,
+      action: 'endFill'
+    });
+  }
+
+  /**
+   * Pen up
+   */
+  up() {
+    this.penDown = false;
+  }
+
+  /**
+   * Pen down
+   */
+  down() {
+    this.penDown = true;
+  }
+
+  /**
    * Move forward
    * @param {Number} amount
    */
@@ -120,7 +234,12 @@ class Turtle {
     this.pos.x += Math.sin(this.heading) * -amount;
     this.pos.y += Math.cos(this.heading) * -amount;
 
-    this.vertices.push({x: this.pos.x, y: this.pos.y, arrowAngle: this.arrowAngle});
+    this.vertices.push({
+      x: this.pos.x,
+      y: this.pos.y,
+      arrowAngle: this.arrowAngle,
+      action: 'forward'
+    });
 	};
 
   /**

@@ -35,3 +35,43 @@ function tree(branchLen, turtle) {
 tree(75, turtle);
 turtle.draw();
 ```
+
+You can even draw a Sierpinski Triangle:
+
+```javascript
+function drawTriangle(l, x, y, myTurtle) {
+  // Not done yet?
+  if (l > min) {
+      // scale down by 2
+      l = l/2;
+      // bottom left triangle
+      drawTriangle(l, x, y, myTurtle);
+      // bottom right triangle
+      drawTriangle(l, x+l, y, myTurtle);
+      // top triangle
+      drawTriangle(l, x+l/2, y-l*pf, myTurtle);
+  }
+  // Done recursing
+  else {
+      // start at (x,y)
+      myTurtle.goto(x, y);
+      myTurtle.down();
+      // prepare to fill triangle
+      myTurtle.beginFill();
+      // triangle base
+      myTurtle.forward(l);
+      myTurtle.left(120);
+      // triangle right
+      myTurtle.forward(l);
+      myTurtle.left(120);
+      // triangle left
+      myTurtle.forward(l);
+      myTurtle.endFill();
+      // face East
+      myTurtle.setHeading(-90);
+      // finish at (x,y)
+      myTurtle.up();
+      myTurtle.goto(x, y);
+    }
+}
+```

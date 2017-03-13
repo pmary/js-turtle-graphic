@@ -27,6 +27,7 @@
     <script>
 			var canvas = document.getElementById('c');
       var arrowCanvas = document.getElementById('a');
+      var context = canvas.getContext("2d");
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
       arrowCanvas.width = window.innerWidth;
@@ -36,7 +37,7 @@
       /**
        * Draw a spiral
        */
-			function drawSpiral(turtle, lineLen) {
+			/*function drawSpiral(turtle, lineLen) {
 				if (lineLen > 0) {
 					turtle.forward(lineLen);
 					turtle.left(90);
@@ -44,7 +45,7 @@
 				}
 			}
 			drawSpiral(turtle, 100);
-      turtle.draw();
+      turtle.draw();*/
 
       /**
        * Draw a fractal tree
@@ -62,6 +63,54 @@
       }
       tree(75, turtle);
       turtle.draw();*/
+
+
+      /**
+       * Draw a Sierpinski Triangle
+       */
+      var size = window.innerWidth/2;
+      var min = 64;
+      var pf = 0.8660254;    // Pythagoras factor: Math.sqrt(3)/2
+
+      function drawTriangle(l, x, y, myTurtle) {
+        // Not done yet?
+        if (l > min) {
+            // scale down by 2
+            l = l/2;
+            // bottom left triangle
+            drawTriangle(l, x, y, myTurtle);
+            // bottom right triangle
+            drawTriangle(l, x+l, y, myTurtle);
+            // top triangle
+            drawTriangle(l, x+l/2, y-l*pf, myTurtle);
+        }
+        // Done recursing
+        else {
+            // start at (x,y)
+            myTurtle.goto(x, y);
+            myTurtle.down();
+            // prepare to fill triangle
+            myTurtle.beginFill();
+            // triangle base
+            myTurtle.forward(l);
+            myTurtle.left(120);
+            // triangle right
+            myTurtle.forward(l);
+            myTurtle.left(120);
+            // triangle left
+            myTurtle.forward(l);
+            myTurtle.endFill();
+            // face East
+            myTurtle.setHeading(-90);
+            // finish at (x,y)
+            myTurtle.up();
+            myTurtle.goto(x, y);
+          }
+      }
+
+      turtle.setHeading(-90);
+      drawTriangle(size, size/2, window.innerWidth/2, turtle);
+      turtle.draw();
 
 		</script>
   </body>
